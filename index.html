@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1117">
+<meta name="description" content="שטחלה — ניהול משימות בשטח. בונים משימה, מפיקים קובץ למבצע, פותחים ועורכים תוצאות.">
+<title>שטחלה — ניהול משימות בשטח</title>
+
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="./icons/icon-apple-touch.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="שטחלה">
+
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<!-- ═══════ SPLASH ═══════ -->
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-emblem-halo"></div>
+    <img class="splash-emblem" src="./icons/icon-512.png" alt="שטחלה">
+    <div class="splash-word">שטחלה</div>
+    <div class="splash-tag">ניהול משימות בשטח · <b>חכם</b> · <span class="c">פשוט</span> · <b>מדויק</b></div>
+    <div class="splash-bar"><i></i></div>
+  </div>
+</div>
+
+<div class="shell">
+  <div class="topbar">
+    <div class="brand">
+      <img src="./icons/icon-192.png" alt="">
+      <div class="tt">שטחלה<small>ניהול משימות בשטח</small></div>
+    </div>
+    <span class="chip-live"><i></i> מקומי · שמור במכשיר</span>
+  </div>
+
+  <div id="install-banner" class="install-banner">
+    <span class="ic">📲</span>
+    <div class="txt"><b>התקנת שטחלה על המכשיר</b><span>אייקון על מסך הבית, עובד גם בלי אינטרנט</span></div>
+    <button class="btn ghost sm" id="install-btn">התקנה</button>
+  </div>
+
+  <div id="app"></div>
+</div>
+
+<input id="import-task-input" type="file" accept=".html" hidden>
+<input id="import-result-input" type="file" accept=".html" hidden>
+<div id="toast-region" class="toast-region"></div>
+
+<script src="./app.js"></script>
+</body>
+</html>
