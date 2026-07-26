@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__TITLE__ — מפה לי</title>
+<style>
+:root{
+  --ink:#16202e;--ink-2:#54636f;--ink-3:#8090a1;
+  --cyan:#9a6f16;--cyan-2:#b8862f;--cyan-soft:#fbf3e2;
+  --green:#4f9c22;--green-soft:#eef7e6;
+  --paper:#f4f6fa;--line:#e3e9f1;--red:#c0392b;--red-soft:#fdecea;
+  --amber:#b7791f;--amber-soft:#fdf6e6;
+  --shadow:0 18px 40px -18px rgba(15,31,46,.22);
+  --tap:50px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;direction:rtl;font-family:"Heebo","Assistant",system-ui,sans-serif;background:var(--paper);color:var(--ink);font-size:16.5px;line-height:1.6;min-height:100dvh;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{letter-spacing:-.015em;line-height:1.28;margin:0;font-weight:800}
+.wrap{max-width:640px;margin:0 auto;padding:18px 16px calc(104px + env(safe-area-inset-bottom))}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.ic.lg{width:30px;height:30px;stroke-width:1.6}
+.ic.sm{width:16px;height:16px}
+
+.top{display:flex;align-items:center;gap:10px;font-weight:900;font-size:18px;margin-bottom:14px}
+.top .mark{width:32px;height:32px;border-radius:11px;background:linear-gradient(150deg,#16283c,#0c1826);color:#e0ac4c;display:grid;place-items:center}
+.top .sp{flex:1}
+.top .pill{font-size:12px;font-weight:700;color:var(--ink-2);background:#fff;border:1px solid var(--line);border-radius:99px;padding:5px 11px}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#0e6f8a;background:var(--cyan-soft);padding:6px 13px;border-radius:100px;margin-bottom:12px}
+.badge .ic{width:15px;height:15px}
+h1{font-size:23px;margin:0 0 10px}
+.card>p.lead{color:var(--ink-2);margin:0 0 16px}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:9px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0;margin:16px 0;font-size:13px;color:var(--ink-2)}
+.meta b{display:block;color:var(--ink);font-size:14.5px;margin-top:3px}
+.privacy{display:flex;gap:9px;align-items:flex-start;font-size:12.8px;color:#3d5a2e;background:var(--green-soft);border-radius:14px;padding:11px 13px;line-height:1.55;margin:14px 0}
+.privacy .ic{width:17px;height:17px;margin-top:2px;color:var(--green)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:16px;min-height:var(--tap);padding:0 24px;border-radius:100px;cursor:pointer;border:1.6px solid transparent;background:var(--cyan-2);color:#fff;width:100%;transition:transform .12s,box-shadow .2s}
+.btn.ghost{background:#fff;border-color:var(--line);color:var(--ink)}
+.btn.dark{background:linear-gradient(150deg,#22394f,#0f1f2e);color:#fff}
+.btn.slim{width:auto;padding:0 18px;min-height:42px;font-size:14.5px}
+.btn:disabled{opacity:.55;cursor:default}
+.btn:active{transform:scale(.985)}
+.btn:focus-visible,.answer-input:focus-visible,.choice:focus-visible{outline:3px solid rgba(184,134,47,.55);outline-offset:2px}
+
+/* ── section progress ───────────────────────────── */
+.prog{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.prog .txt{flex:1;font-size:12.8px;color:var(--ink-2);font-weight:600}
+.prog .txt b{color:var(--ink)}
+.jump{display:inline-flex;align-items:center;gap:6px;font-size:12.8px;font-weight:700;color:var(--cyan);background:#fff;border:1.5px solid var(--line);border-radius:99px;padding:6px 12px;cursor:pointer;min-height:36px}
+.jump .ic{width:15px;height:15px}
+.bar{height:7px;background:#e6ebf2;border-radius:99px;overflow:hidden;margin-bottom:16px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#e0ac4c,#b8862f);border-radius:99px;transition:width .3s}
+
+.sec-head{display:flex;align-items:center;gap:10px;margin:0 0 4px}
+.sec-head .ic{color:var(--cyan)}
+.sec-head h2{font-size:20px}
+.sec-sub{color:var(--ink-3);font-size:13px;margin:0 0 18px}
+
+/* ── field block ────────────────────────────────── */
+.blk{padding:16px 0;border-top:1px solid var(--line)}
+.blk:first-of-type{border-top:0;padding-top:4px}
+.blk .lb{display:flex;align-items:baseline;gap:6px;font-weight:700;font-size:16px;margin:0 0 3px;line-height:1.35}
+.blk .lb .req{color:var(--red);font-weight:800}
+.blk .help{color:var(--ink-2);font-size:13.2px;margin:0 0 10px}
+.blk .help:empty{display:none}
+.blk .body{margin-top:9px}
+.blk.bad{background:var(--red-soft);border-radius:14px;padding:14px;margin:8px -6px;border-top-color:transparent}
+.blk.bad .lb{color:var(--red)}
+.blk .fe{color:var(--red);font-size:12.8px;font-weight:600;margin-top:7px;display:none}
+.blk.bad .fe{display:block}
+
+.answer-input{width:100%;font-size:16.5px;padding:12px 13px;border:1.6px solid var(--line);border-radius:14px;outline:none;background:#fff;min-height:var(--tap)}
+.answer-input:focus{border-color:var(--cyan-2);box-shadow:0 0 0 3px rgba(184,134,47,.18)}
+textarea.answer-input{min-height:96px;resize:vertical;line-height:1.55}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.choice{display:flex;align-items:center;justify-content:center;gap:7px;border:1.6px solid var(--line);border-radius:14px;padding:13px;background:#fff;font-size:15px;cursor:pointer;min-height:var(--tap)}
+.choice.active{border-color:var(--cyan-2);background:var(--cyan-soft);color:#0e6f8a;font-weight:700}
+.choice .ic{width:17px;height:17px}
+
+.zone{border:1.8px dashed #b9d3e0;border-radius:16px;padding:16px;text-align:center;background:#f7fbfd}
+.zone input[type=file]{display:none}
+.zone label{cursor:pointer;display:block}
+.zone .ic{color:var(--cyan);margin-bottom:5px}
+.zone b{font-size:15px;display:block}
+.zone small{font-size:12.2px;color:var(--ink-2);display:block;margin-top:2px}
+.shots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.shots img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:11px;display:block;border:1px solid var(--line)}
+.shot{position:relative;padding:5px 5px 0 0}
+.shot .rm{position:absolute;top:0;inset-inline-start:0;width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;border:2.5px solid #fff;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:0 2px 8px rgba(15,31,46,.3)}
+.shot .rm .ic{width:14px;height:14px;margin:0;stroke-width:2.4}
+.signature{width:100%;height:172px;border:1.6px dashed #c3ccd6;border-radius:16px;background:#fbfdfe;touch-action:none;display:block}
+
+/* ── sticky footer nav ──────────────────────────── */
+.foot{position:fixed;inset-inline:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(244,246,250,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+.foot-in{max-width:640px;margin:0 auto;display:flex;gap:9px}
+.foot-in .btn{flex:1}
+.foot-in .btn.back{flex:0 0 auto;width:auto;padding:0 18px}
+
+/* ── jump sheet ─────────────────────────────────── */
+.sheet-bg{position:fixed;inset:0;z-index:60;background:rgba(10,18,26,.5);display:flex;align-items:flex-end;justify-content:center;padding:0}
+.sheet{background:var(--paper);width:100%;max-width:640px;border-radius:24px 24px 0 0;max-height:82dvh;display:flex;flex-direction:column}
+.sheet-head{display:flex;align-items:center;gap:10px;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.sheet-head b{flex:1;font-size:17px}
+.sheet-head .x{width:38px;height:38px;border-radius:12px;border:1.5px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;padding:0}
+.sheet-body{overflow-y:auto;padding:10px 14px calc(20px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.jrow{display:flex;align-items:center;gap:11px;width:100%;background:#fff;border:1.5px solid var(--line);border-radius:15px;padding:12px 14px;margin-bottom:7px;cursor:pointer;text-align:start;min-height:var(--tap)}
+.jrow.now{border-color:var(--cyan-2);box-shadow:0 0 0 3px rgba(31,158,212,.13)}
+.jrow .st{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;flex:none}
+.jrow .st.ok{background:var(--green-soft);color:var(--green)}
+.jrow .st.miss{background:var(--red-soft);color:var(--red)}
+.jrow .st.part{background:var(--amber-soft);color:var(--amber)}
+.jrow .st .ic{width:15px;height:15px}
+.jrow .m{flex:1;min-width:0}
+.jrow .m b{display:block;font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jrow .m span{font-size:12.2px;color:var(--ink-2)}
+.jrow .n{font-size:12.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
+/* ── review ─────────────────────────────────────── */
+.rev-band{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;color:var(--cyan);margin:20px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+.rev-band .sp{flex:1}
+.rev-band button{border:0;background:none;color:var(--cyan);font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px;min-height:34px}
+.rev-row{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:11px 0}
+.rev-row:last-child{border-bottom:0}
+.rev-info{flex:1;min-width:0}
+.rev-q{font-size:12.3px;color:var(--ink-3);margin-bottom:2px}
+.rev-a{font-weight:600;font-size:14.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rev-a.none{color:var(--red);font-weight:700}
+.callout{display:flex;gap:9px;align-items:flex-start;border-radius:14px;padding:12px 14px;font-size:13.2px;line-height:1.55;margin:0 0 16px}
+.callout.warn{background:var(--amber-soft);color:#7a5b12}
+.callout.ok{background:var(--green-soft);color:#3d5a2e}
+.callout .ic{width:17px;height:17px;margin-top:2px;flex:none}
+
+.code-input{font-size:26px;letter-spacing:12px;text-align:center;direction:ltr;width:100%;max-width:220px;margin:14px auto;display:block;border:1.6px solid var(--line);border-radius:14px;padding:12px;outline:none}
+.toast-region{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:16px;right:16px;z-index:70;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{background:#16202e;color:#fff;padding:11px 16px;border-radius:12px;font-size:13.5px;box-shadow:var(--shadow);max-width:340px;text-align:center}
+.warn-toast{background:var(--amber-soft);color:#7a5b12;border:1px solid #ead9a3}
+#draft-warn{position:fixed;top:10px;left:12px;right:12px;z-index:80;background:var(--amber-soft);color:#7a5b12;border:1px solid #ead9a3;border-radius:14px;padding:12px 16px;font-size:13.2px;font-weight:600;text-align:center;box-shadow:var(--shadow);max-width:520px;margin:0 auto}
+.err{color:var(--red);font-size:13.5px;margin-top:4px;min-height:16px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><symbol id="i-home" viewBox="0 0 24 24"><path d="M3.6 10.2 12 3.6l8.4 6.6V19a1.4 1.4 0 0 1-1.4 1.4h-4.2v-5.6H9.2v5.6H5a1.4 1.4 0 0 1-1.4-1.4Z"/></symbol><symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3.4 13.2h4l1.3 2.3h6.6l1.3-2.3h4"/><path d="M3.4 13.2 6 5.4a1.4 1.4 0 0 1 1.3-.9h9.4a1.4 1.4 0 0 1 1.3.9l2.6 7.8v4.4a1.4 1.4 0 0 1-1.4 1.4H4.8a1.4 1.4 0 0 1-1.4-1.4Z"/></symbol><symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5.2" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.8" cy="12" r="1.5"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.2v13.6M5.2 12h13.6"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5.2 12h13.6"/></symbol><symbol id="i-close" viewBox="0 0 24 24"><path d="M6.2 6.2l11.6 11.6M17.8 6.2 6.2 17.8"/></symbol><symbol id="i-back" viewBox="0 0 24 24"><path d="M4.6 12h14.8M11.4 5.6 4.6 12l6.8 6.4"/></symbol><symbol id="i-next" viewBox="0 0 24 24"><path d="M19.4 12H4.6M12.6 5.6 19.4 12l-6.8 6.4"/></symbol><symbol id="i-chev-down" viewBox="0 0 24 24"><path d="M6.4 9.4 12 15l5.6-5.6"/></symbol><symbol id="i-chev-left" viewBox="0 0 24 24"><path d="M14.6 5.8 8.4 12l6.2 6.2"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.2"/><path d="M15.6 15.6 20.4 20.4"/></symbol><symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 3.2v2.3M12 18.5v2.3M4.8 7.8l2 1.15M17.2 15.05l2 1.15M4.8 16.2l2-1.15M17.2 8.95l2-1.15"/></symbol><symbol id="i-cctv" viewBox="0 0 24 24"><path d="M3.4 8.1l13.1-3.5a1.3 1.3 0 0 1 1.6.92l.85 3.17a1.3 1.3 0 0 1-.92 1.6L4.93 13.77Z"/><path d="M8.2 12.6l1.15 4.3M6.6 20.4h5.5l-1.4-4.1"/><path d="M18.7 9.3l2.4-.64"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.6" y="3.6" width="7" height="7" rx="1.6"/><rect x="13.4" y="3.6" width="7" height="7" rx="1.6"/><rect x="3.6" y="13.4" width="7" height="7" rx="1.6"/><rect x="13.4" y="13.4" width="7" height="7" rx="1.6"/></symbol><symbol id="i-cabinet" viewBox="0 0 24 24"><rect x="4.6" y="3.4" width="14.8" height="17.2" rx="1.8"/><path d="M12 3.4v17.2M9.4 11.2h.9M14.6 11.2h.9"/></symbol><symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.4 3.2 5.6 13.6h5.2l-.7 7.2 8-10.6h-5.2Z"/></symbol><symbol id="i-cable" viewBox="0 0 24 24"><path d="M6.2 3.4v4.2a2.4 2.4 0 0 0 2.4 2.4h1.2a2.4 2.4 0 0 1 2.4 2.4v3.4a2.8 2.8 0 0 0 2.8 2.8h1.4"/><path d="M4.2 3.4h4M15.4 20.6h4.4"/></symbol><symbol id="i-mast" viewBox="0 0 24 24"><path d="M12 20.6V6.2M12 6.2 7.4 3.4M12 6.2l4.6-2.8M8.2 20.6h7.6M9.4 12.4h5.2M8.8 16.4h6.4"/></symbol><symbol id="i-gate" viewBox="0 0 24 24"><path d="M3.4 20.6h17.2M5.2 20.6V8.2l6.8-3.6 6.8 3.6v12.4"/><path d="M9.2 20.6v-7.2h5.6v7.2"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3.4 3.6 8.2 12 13l8.4-4.8Z"/><path d="M3.6 12.6 12 17.4l8.4-4.8"/><path d="M3.6 16.6 12 21.4l8.4-4.8"/></symbol><symbol id="i-f-text" viewBox="0 0 24 24"><path d="M5.4 5.6h13.2M12 5.6v12.8M9 18.4h6"/></symbol><symbol id="i-f-para" viewBox="0 0 24 24"><path d="M4.4 6.4h15.2M4.4 10.6h15.2M4.4 14.8h11M4.4 19h7"/></symbol><symbol id="i-f-num" viewBox="0 0 24 24"><path d="M8.4 4.2 7 19.8M17 4.2l-1.4 15.6M4.2 9h15.4M3.6 14.4H19"/></symbol><symbol id="i-f-bool" viewBox="0 0 24 24"><rect x="3.8" y="3.8" width="16.4" height="16.4" rx="3.4"/><path d="M7.8 12.2l2.9 2.9 5.5-6"/></symbol><symbol id="i-f-select" viewBox="0 0 24 24"><rect x="3.4" y="5.4" width="17.2" height="13.2" rx="2.2"/><path d="M6.9 10.2h6.2M6.9 14h4.1"/><path d="M15.2 11.1 17.3 13.2l2.1-2.1"/></symbol><symbol id="i-f-date" viewBox="0 0 24 24"><rect x="3.8" y="5.4" width="16.4" height="14.8" rx="2.4"/><path d="M3.8 10h16.4M8.4 3.4v3.6M15.6 3.4v3.6"/></symbol><symbol id="i-f-photo" viewBox="0 0 24 24"><rect x="3.4" y="5.6" width="17.2" height="13.4" rx="2.4"/><circle cx="12" cy="12.3" r="3.3"/><path d="M8.6 5.6l1.1-2.2h4.6l1.1 2.2"/></symbol><symbol id="i-f-gps" viewBox="0 0 24 24"><path d="M19 10.4c0 5.1-7 10.4-7 10.4s-7-5.3-7-10.4a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10.2" r="2.6"/></symbol><symbol id="i-f-sign" viewBox="0 0 24 24"><path d="M3.4 18.4c3.2 0 4.2-4.8 6-4.8 1.5 0 1.3 3.2 2.9 3.2 2.1 0 2.6-9.4 4.6-9.4 1.4 0 1.2 4.6 2.5 4.6"/><path d="M4.4 21.4h15.2"/></symbol><symbol id="i-file-out" viewBox="0 0 24 24"><path d="M13.6 3.6H7a1.9 1.9 0 0 0-1.9 1.9v13a1.9 1.9 0 0 0 1.9 1.9h10a1.9 1.9 0 0 0 1.9-1.9V9.4Z"/><path d="M13.6 3.6v5.8h5.3"/><path d="M12 17.4v-6M9.4 13.6 12 11l2.6 2.6"/></symbol><symbol id="i-send" viewBox="0 0 24 24"><path d="M20.6 3.4 10.4 13.6M20.6 3.4l-6.6 17.2-3.6-7-7-3.6Z"/></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M16.2 3.9a2 2 0 0 1 2.9 0l1.1 1.1a2 2 0 0 1 0 2.9L8.3 20.1l-4.9 1.2 1.2-4.9Z"/><path d="M14.6 5.6l3.8 3.8"/></symbol><symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.4 12S6 5.6 12 5.6 21.6 12 21.6 12 18 18.4 12 18.4 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="2.9"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.4" y="8.4" width="12.2" height="12.2" rx="2.2"/><path d="M15.6 5.6V5A1.6 1.6 0 0 0 14 3.4H5.6A2.2 2.2 0 0 0 3.4 5.6V14a1.6 1.6 0 0 0 1.6 1.6h.6"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.4 6.8h15.2M9.4 6.8V4.6h5.2v2.2"/><path d="M6.4 6.8l.9 12.4a1.6 1.6 0 0 0 1.6 1.4h6.2a1.6 1.6 0 0 0 1.6-1.4l.9-12.4"/><path d="M10.4 10.6v6M13.6 10.6v6"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.6v11M7.8 10.4 12 14.6l4.2-4.2"/><path d="M3.8 16.4v2.4a1.8 1.8 0 0 0 1.8 1.8h12.8a1.8 1.8 0 0 0 1.8-1.8v-2.4"/></symbol><symbol id="i-install" viewBox="0 0 24 24"><rect x="6.4" y="2.6" width="11.2" height="18.8" rx="2.6"/><path d="M12 6.6v6.8M9.2 10.8 12 13.6l2.8-2.8M10.4 18.4h3.2"/></symbol><symbol id="i-printer" viewBox="0 0 24 24"><path d="M6.6 8.4V3.6h10.8v4.8"/><rect x="3.4" y="8.4" width="17.2" height="7.4" rx="2"/><path d="M6.6 13.6h10.8v6.8H6.6Z"/></symbol><symbol id="i-table" viewBox="0 0 24 24"><rect x="3.4" y="4.4" width="17.2" height="15.2" rx="2.2"/><path d="M3.4 9.4h17.2M3.4 14.6h17.2M9.6 4.4v15.2"/></symbol><symbol id="i-wand" viewBox="0 0 24 24"><path d="M4.4 19.6 15.6 8.4M13.4 4.4l.9 2.2 2.2.9-2.2.9-.9 2.2-.9-2.2-2.2-.9 2.2-.9Z"/><path d="M18.8 12.6l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6Z"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.6" y="10.2" width="14.8" height="10.4" rx="2.4"/><path d="M8.2 10.2V7.8a3.8 3.8 0 0 1 7.6 0v2.4"/><path d="M12 14v3"/></symbol><symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4.6" y="10.2" width="14.8" height="10.4" rx="2.4"/><path d="M8.2 10.2V7.8a3.8 3.8 0 0 1 7.4-1.1"/><path d="M12 14v3"/></symbol><symbol id="i-reset" viewBox="0 0 24 24"><path d="M20.2 12a8.2 8.2 0 1 1-2.9-6.3"/><path d="M20.4 3.8v4.6h-4.6"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M4.8 12.6l4.5 4.5L19.2 7.2"/></symbol><symbol id="i-check-circ" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M8.2 12.3l2.7 2.7 5-5.4"/></symbol><symbol id="i-draft" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" stroke-dasharray="3.2 3"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.5 4.2 3.2 17a1.7 1.7 0 0 0 1.5 2.6h14.6a1.7 1.7 0 0 0 1.5-2.6L13.5 4.2a1.7 1.7 0 0 0-3 0Z"/><path d="M12 9v4.2M12 16.6v.1"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 11v5.4M12 7.8v.1"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.2V12l3.4 2.2"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/></symbol></svg>
+<div class="wrap">
+  <div class="top">
+    <span class="mark"><svg class="ic"><use href="#i-check"/></svg></span>
+    <span>מפה לי</span>
+    <span class="sp"></span>
+    <span class="pill" id="top-pill" hidden></span>
+  </div>
+  <div id="app"></div>
+</div>
+<div class="foot" id="foot" hidden><div class="foot-in" id="foot-in"></div></div>
+<div class="toast-region" id="toasts"></div>
+
+<script id="shtachla-task-src" type="application/json">__TASKSRC__</script>
+<script>
+'use strict';
+const TASK = __TASK__;
+const RESULT_TEMPLATE = "<!DOCTYPE html>\n<html lang=\"he\" dir=\"rtl\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>__TITLE__ \u2014 \u05ea\u05d5\u05e6\u05d0\u05d4 \u05de\u05de\u05e4\u05d4 \u05dc\u05d9<\/title>\n<style>\n:root{--ink:#16202e;--ink-2:#54636f;--ink-3:#8090a1;--cyan:#9a6f16;--cyan-soft:#fbf3e2;--line:#e3e9f1;--amber:#b7791f;--amber-soft:#fdf6e6;--red:#c0392b;--paper:#f4f6fa;--shadow:0 18px 40px -18px rgba(15,31,46,.22)}\n*{box-sizing:border-box}\nbody{margin:0;direction:rtl;font-family:\"Heebo\",\"Assistant\",system-ui,sans-serif;background:var(--paper);color:var(--ink);font-size:16px;line-height:1.65}\n.wrap{max-width:760px;margin:0 auto;padding:22px 18px 60px}\n.top{display:flex;align-items:center;gap:10px;font-weight:900;font-size:19px;margin-bottom:18px}\n.top .mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(150deg,#16283c,#0c1826);color:#e0ac4c;display:grid;place-items:center}\n.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow)}\n.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}\n.lockbox{text-align:center;padding:20px 6px}\n.lockbox .big{width:46px;height:46px;margin:0 auto 12px;color:var(--cyan);fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}\n.lockbox h1{font-size:21px;margin:0 0 8px}\n.lockbox p{color:var(--ink-2);margin:0 0 18px;font-size:15px}\n.code-input{font-size:26px;letter-spacing:12px;text-align:center;direction:ltr;width:100%;max-width:220px;margin:0 auto 14px;display:block;border:1.6px solid var(--line);border-radius:14px;padding:12px;outline:none}\n.code-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(184,134,47,.18)}\n.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:16px;min-height:48px;padding:0 24px;border-radius:100px;cursor:pointer;border:0;background:var(--cyan);color:#fff}\n.btn.wide{width:100%}\n.btn.ghost{background:#fff;border:1.6px solid var(--line);color:var(--ink)}\n.err{color:var(--red);font-size:14px;margin-top:6px;min-height:18px}\n.rep-head{margin-bottom:18px}\n.rep-head .badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#0e6f8a;background:var(--cyan-soft);padding:6px 13px;border-radius:100px;margin-bottom:9px}\n.rep-head .badge .ic{width:15px;height:15px}\n.rep-head h1{font-size:23px;margin:0 0 4px}\n.rep-head p{color:var(--ink-2);margin:0;font-size:14px}\n.actions{display:flex;gap:9px;margin:16px 0 6px;flex-wrap:wrap}\n.band{font-weight:800;font-size:13px;color:var(--cyan);margin:22px 0 10px;padding-bottom:7px;border-bottom:2px solid var(--line)}\n.band:first-of-type{margin-top:6px}\n.row{border-bottom:1px solid var(--line);padding:13px 0}\n.row:last-child{border-bottom:0}\n.row .q{font-size:12.5px;font-weight:700;color:var(--ink-3);margin-bottom:5px}\n.row .a{color:var(--ink);white-space:pre-wrap;font-size:15.5px}\n.row .a em{color:var(--ink-3);font-style:normal}\n.imgs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}\n.imgs img{width:110px;height:82px;object-fit:cover;border-radius:11px;border:1px solid var(--line)}\n.sig{max-width:220px;max-height:96px;display:block;border:1px solid var(--line);border-radius:10px;margin-top:6px;background:#fff}\n.note{font-size:12.5px;color:var(--ink-2);background:#eef2ec;border-radius:12px;padding:11px 14px;margin-top:20px}\n@media print{.top,.actions,.note{display:none!important}.card{box-shadow:none;border:0}body{background:#fff}}\n<\/style>\n<\/head>\n<body>\n<svg xmlns=\"http://www.w3.org/2000/svg\" style=\"position:absolute;width:0;height:0\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\">\n<symbol id=\"i-check\" viewBox=\"0 0 24 24\"><path d=\"M4.8 12.6l4.5 4.5L19.2 7.2\"/><\/symbol>\n<symbol id=\"i-lock\" viewBox=\"0 0 24 24\"><rect x=\"4.6\" y=\"10.2\" width=\"14.8\" height=\"10.4\" rx=\"2.4\"/><path d=\"M8.2 10.2V7.8a3.8 3.8 0 0 1 7.6 0v2.4\"/><path d=\"M12 14v3\"/><\/symbol>\n<symbol id=\"i-warn\" viewBox=\"0 0 24 24\"><path d=\"M10.5 4.2 3.2 17a1.7 1.7 0 0 0 1.5 2.6h14.6a1.7 1.7 0 0 0 1.5-2.6L13.5 4.2a1.7 1.7 0 0 0-3 0Z\"/><path d=\"M12 9v4.2M12 16.6v.1\"/><\/symbol>\n<symbol id=\"i-printer\" viewBox=\"0 0 24 24\"><path d=\"M6.6 8.4V3.6h10.8v4.8\"/><rect x=\"3.4\" y=\"8.4\" width=\"17.2\" height=\"7.4\" rx=\"2\"/><path d=\"M6.6 13.6h10.8v6.8H6.6Z\"/><\/symbol>\n<symbol id=\"i-table\" viewBox=\"0 0 24 24\"><rect x=\"3.4\" y=\"4.4\" width=\"17.2\" height=\"15.2\" rx=\"2.2\"/><path d=\"M3.4 9.4h17.2M3.4 14.6h17.2M9.6 4.4v15.2\"/><\/symbol>\n<\/svg>\n<div class=\"wrap\">\n  <div class=\"top\"><span class=\"mark\"><svg class=\"ic\"><use href=\"#i-check\"/><\/svg><\/span><span>\u05de\u05e4\u05d4 \u05dc\u05d9<\/span><\/div>\n  <div id=\"app\" class=\"card\"><\/div>\n<\/div>\n<script>\nconst HEADER = __HEADER__;\nconst PAYLOAD_B64 = \"__PAYLOAD__\";\nconst app = document.getElementById('app');\nconst decoder = new TextDecoder();\nconst b64ToBytes = v => Uint8Array.from(atob(v), c => c.charCodeAt(0));\nconst esc = v => String(v ?? '').replace(/[&<>'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',\"'\":'&#39;','\"':'&quot;'}[c]));\nconst icon = (n, cls) => `<svg class=\"${cls||'ic'}\"><use href=\"#i-${n}\"/><\/svg>`;\n\nfunction renderAnswer(row){\n  if (Array.isArray(row.answer)) return row.answer.length ? `<div class=\"imgs\">${row.answer.map(i=>`<img src=\"${i}\">`).join('')}<\/div>` : '<em>\u05dc\u05d0 \u05e6\u05d5\u05e8\u05e4\u05d4 \u05ea\u05de\u05d5\u05e0\u05d4<\/em>';\n  if (row.type === 'signature' && row.answer) return `<img class=\"sig\" src=\"${row.answer}\">`;\n  if (row.type === 'gps' && row.answer && row.answer.latitude) return `\u05e7\u05d5 \u05e8\u05d5\u05d7\u05d1 ${row.answer.latitude.toFixed(6)}, \u05e7\u05d5 \u05d0\u05d5\u05e8\u05da ${row.answer.longitude.toFixed(6)} \u00b7 \u05d3\u05d9\u05d5\u05e7 ${Math.round(row.answer.accuracy||0)} \u05de\u05f3`;\n  return (row.answer === null || row.answer === undefined || row.answer === '') ? '<em>\u05dc\u05d0 \u05de\u05d5\u05dc\u05d0<\/em>' : esc(row.answer);\n}\n\nfunction renderReport(payload){\n  const secs = []; payload.answers.forEach(r => { const s = r.section || '\u05db\u05dc\u05dc\u05d9'; if (!secs.includes(s)) secs.push(s); });\n  const body = secs.map(s => {\n    const rows = payload.answers.filter(r => (r.section||'\u05db\u05dc\u05dc\u05d9') === s)\n      .map(r => `<div class=\"row\"><div class=\"q\">${esc(r.label)}<\/div><div class=\"a\">${renderAnswer(r)}<\/div><\/div>`).join('');\n    return `<div class=\"band\">${esc(s)}<\/div>${rows}`;\n  }).join('');\n  app.innerHTML = `\n    <div class=\"rep-head\">\n      <span class=\"badge\">${icon('check')} ${HEADER.locked ? '\u05e4\u05d5\u05e2\u05e0\u05d7 \u05d1\u05d4\u05e6\u05dc\u05d7\u05d4' : '\u05ea\u05d5\u05e6\u05d0\u05d4 \u05e4\u05ea\u05d5\u05d7\u05d4'}<\/span>\n      <h1>${esc(payload.task.title)}<\/h1>\n      <p>${esc(payload.task.site || '\u05dc\u05dc\u05d0 \u05d0\u05ea\u05e8')} \u00b7 \u05d4\u05d5\u05e9\u05dc\u05dd ${new Date(payload.metadata.completedAt).toLocaleDateString('he-IL')}<\/p>\n    <\/div>\n    <div class=\"actions\"><button class=\"btn\" id=\"pdf-btn\">${icon('printer')} \u05d9\u05d9\u05e6\u05d5\u05d0 PDF<\/button><button class=\"btn ghost\" id=\"csv-btn\">${icon('table')} \u05d9\u05d9\u05e6\u05d5\u05d0 Excel<\/button><\/div>\n    ${body}\n    <div class=\"note\">\u05e7\u05d5\u05d1\u05e5 \u05ea\u05d5\u05e6\u05d0\u05d4 \u05e9\u05dc \u05de\u05e4\u05d4 \u05dc\u05d9. \u05e0\u05d5\u05e6\u05e8 \u05d1\u05de\u05db\u05e9\u05d9\u05e8 \u05d4\u05de\u05d1\u05e6\u05e2, \u05dc\u05dc\u05d0 \u05e9\u05e8\u05ea \u05d5\u05dc\u05d0 \u05e2\u05e0\u05df.<\/div>`;\n  document.getElementById('pdf-btn').onclick = () => window.print();\n  document.getElementById('csv-btn').onclick = () => {\n    const cols = payload.answers.map(r => [r.section, r.label, Array.isArray(r.answer) ? `${r.answer.length} \u05ea\u05de\u05d5\u05e0\u05d5\u05ea` : (typeof r.answer === 'object' && r.answer ? JSON.stringify(r.answer) : r.answer)]);\n    const csv = '\\ufeff\u05e1\u05e2\u05d9\u05e3,\u05e9\u05d0\u05dc\u05d4,\u05ea\u05e9\u05d5\u05d1\u05d4\\n' + cols.map(row => row.map(v => `\"${String(v ?? '').replaceAll('\"','\"\"')}\"`).join(',')).join('\\n');\n    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'})); a.download = `${payload.task.title}-\u05ea\u05d5\u05e6\u05d0\u05d5\u05ea.csv`; a.click();\n  };\n}\n\nasync function unlockWith(code){\n  const encoder = new TextEncoder();\n  const material = await crypto.subtle.importKey('raw', encoder.encode(code), 'PBKDF2', false, ['deriveKey']);\n  const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt:b64ToBytes(HEADER.salt), iterations:HEADER.iterations, hash:'SHA-256'}, material, {name:'AES-GCM', length:256}, false, ['decrypt']);\n  const encrypted = b64ToBytes(PAYLOAD_B64).buffer;\n  const data = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64ToBytes(HEADER.iv)}, key, encrypted);\n  return JSON.parse(decoder.decode(data));\n}\n\nfunction showLock(){\n  app.innerHTML = `<div class=\"lockbox\">${icon('lock','big')}<h1>\u05ea\u05d5\u05e6\u05d0\u05d4 \u05de\u05d5\u05d2\u05e0\u05ea \u05d1\u05e7\u05d5\u05d3<\/h1><p>\u05d4\u05d6\u05df \u05d0\u05ea \u05d4\u05e7\u05d5\u05d3 \u05d1\u05df 4 \u05d4\u05e1\u05e4\u05e8\u05d5\u05ea \u05e9\u05d4\u05de\u05d1\u05e6\u05e2 \u05de\u05e1\u05e8 \u05d1\u05d8\u05dc\u05e4\u05d5\u05df.<\/p><input id=\"code\" class=\"code-input\" inputmode=\"numeric\" maxlength=\"4\" placeholder=\"\u2022\u2022\u2022\u2022\"><button class=\"btn wide\" id=\"unlock\">\u05e4\u05ea\u05d9\u05d7\u05ea \u05d4\u05ea\u05d5\u05e6\u05d0\u05d4<\/button><div class=\"err\" id=\"err\"><\/div><\/div>`;\n  document.getElementById('unlock').onclick = async () => {\n    const code = document.getElementById('code').value.trim();\n    const errEl = document.getElementById('err');\n    if (!/^\\d{4}$/.test(code)) { errEl.textContent = '\u05d9\u05e9 \u05dc\u05d4\u05d6\u05d9\u05df \u05e7\u05d5\u05d3 \u05d1\u05df 4 \u05e1\u05e4\u05e8\u05d5\u05ea.'; return; }\n    try { const payload = await unlockWith(code); renderReport(payload); }\n    catch { errEl.textContent = '\u05d4\u05e7\u05d5\u05d3 \u05e9\u05d2\u05d5\u05d9, \u05d0\u05d5 \u05e9\u05d4\u05e7\u05d5\u05d1\u05e5 \u05e0\u05e4\u05d2\u05dd. \u05dc\u05d0 \u05e0\u05d7\u05e9\u05e3 \u05de\u05d9\u05d3\u05e2 \u05d7\u05dc\u05e7\u05d9.'; }\n  };\n  document.getElementById('code').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('unlock').click(); });\n}\n\n(function init(){\n  if (HEADER.locked) { showLock(); return; }\n  try { renderReport(JSON.parse(decoder.decode(b64ToBytes(PAYLOAD_B64)))); }\n  catch (e) { app.innerHTML = `<div class=\"lockbox\">${icon('warn','big')}<h1>\u05dc\u05d0 \u05e0\u05d9\u05ea\u05df \u05dc\u05e7\u05e8\u05d5\u05d0 \u05d0\u05ea \u05d4\u05e7\u05d5\u05d1\u05e5<\/h1><p>\u05d4\u05e7\u05d5\u05d1\u05e5 \u05e2\u05e9\u05d5\u05d9 \u05dc\u05d4\u05d9\u05d5\u05ea \u05e4\u05d2\u05d5\u05dd.<\/p><\/div>`; }\n})();\n<\/script>\n<\/body>\n<\/html>\n";
+
+/* In-app mode: the host PWA sets window.SHTACHLA_HOST before writing this document
+   into a same-origin iframe. Reading it cross-origin throws, which is the answer we want. */
+const INAPP = (() => { try { return window.parent !== window && window.parent.SHTACHLA_HOST === true; } catch { return false; } })();
+window.INAPP = INAPP;   // observable for tests and for the host
+
+const app = document.getElementById('app');
+const foot = document.getElementById('foot');
+const footIn = document.getElementById('foot-in');
+const topPill = document.getElementById('top-pill');
+const toasts = document.getElementById('toasts');
+const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const icon = (n, cls) => `<svg class="${cls || 'ic'}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const encoder = new TextEncoder();
+const bytesToB64 = buf => { let s=''; const b=new Uint8Array(buf); const CH=0x8000; for(let i=0;i<b.length;i+=CH) s+=String.fromCharCode.apply(null, b.subarray(i,i+CH)); return btoa(s); };
+
+function toast(msg, warn){
+  const n = document.createElement('div'); n.className = 'toast' + (warn ? ' warn-toast' : '');
+  n.textContent = msg; toasts.append(n); setTimeout(() => n.remove(), 3800);
+}
+
+function compressImage(file, maxDim, quality){
+  maxDim = maxDim || 1920; quality = quality || 0.72;
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const c = document.createElement('canvas'); c.width = width; c.height = height;
+      c.getContext('2d').drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      try { resolve(c.toDataURL('image/jpeg', quality)); } catch (e) { reject(e); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image-decode-failed')); };
+    img.src = url;
+  });
+}
+
+/* ═══ SECTIONS — the engine walks sections, not single fields ═══ */
+const SECTIONS = (() => {
+  const out = [];
+  TASK.fields.forEach((f, gi) => {
+    const name = f.section || 'כללי';
+    let s = out.find(x => x.name === name);
+    if (!s) { s = { name, items: [], icon: f.secIcon || null }; out.push(s); }
+    if (!s.icon && f.secIcon) s.icon = f.secIcon;
+    s.items.push({ f, gi });
+  });
+  return out;
+})();
+const LAST = SECTIONS.length - 1;
+
+let state = { step: 0, answers: {}, returnToReview: false, started: false };
+try { const saved = JSON.parse(localStorage.getItem('shtachla-draft-' + TASK.id) || 'null'); if (saved) state = Object.assign({ returnToReview:false, started:false }, saved); } catch {}
+if (state.step > LAST) state.step = LAST;
+
+/* pre-fill camera identifiers etc. so nobody types what we already know */
+TASK.fields.forEach(f => { if (f.prefill && (state.answers[f.id] === undefined || state.answers[f.id] === '')) state.answers[f.id] = f.prefill; });
+
+function showDraftWarning(){
+  if (document.getElementById('draft-warn')) return;
+  const n = document.createElement('div'); n.id = 'draft-warn';
+  n.textContent = 'השמירה האוטומטית נכשלה — אין מקום פנוי באחסון. אפשר להמשיך למלא, אבל אל תסגור את הדף עד שנוצר קובץ התוצאה.';
+  document.body.prepend(n);
+}
+function clearDraftWarning(){ const n = document.getElementById('draft-warn'); if (n) n.remove(); }
+function persistDraft(){
+  try { localStorage.setItem('shtachla-draft-' + TASK.id, JSON.stringify(state)); clearDraftWarning(); }
+  catch { showDraftWarning(); }
+}
+
+const isEmpty = v => v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length) || (typeof v === 'object' && !Array.isArray(v) && v !== null && !v.latitude && !v.length);
+function secStat(s){
+  const total = s.items.length;
+  const filled = s.items.filter(it => !isEmpty(state.answers[it.f.id])).length;
+  const missing = s.items.filter(it => it.f.required && isEmpty(state.answers[it.f.id])).length;
+  return { total, filled, missing, done: filled === total };
+}
+function allMissing(){ return SECTIONS.reduce((n, s) => n + secStat(s).missing, 0); }
+
+/* ═══ VIEW: intro ═══ */
+function introView(){
+  foot.hidden = true; topPill.hidden = true;
+  const resume = state.step > 0 || Object.values(state.answers).some(v => !isEmpty(v));
+  app.innerHTML = `
+    <div class="card">
+      <span class="badge">${icon('cctv')} משימת שטח</span>
+      <h1>${esc(TASK.title)}</h1>
+      <p class="lead">${esc(TASK.description || 'עוברים סעיף-סעיף. הכול נשמר במכשיר תוך כדי העבודה.')}</p>
+      <div class="meta">
+        <div>אתר / לקוח<b>${esc(TASK.site || 'לא צוין')}</b></div>
+        <div>זמן משוער<b>${esc(TASK.estimated || 'לא צוין')}</b></div>
+        <div>שולח<b>${esc(TASK.owner || 'מנהל המשימה')}</b></div>
+        <div>כולל<b>${SECTIONS.length} סעיפים · ${TASK.fields.length} שדות</b></div>
+      </div>
+      <div class="privacy">${icon('lock')}<span>${INAPP
+        ? 'מילוי מתוך מפה לי. בסיום התוצאה תישמר ישירות בספריית התוצאות שלך.'
+        : 'המידע נשמר במכשיר הזה בזמן העבודה. בסיום ייווצר קובץ אחד שתבחר בעצמך למי לשלוח.'}</span></div>
+      <button class="btn" id="start">${resume ? 'המשך מאיפה שעצרת' : 'התחלת המשימה'} ${icon('next')}</button>
+      ${resume ? `<button class="btn ghost" id="restart" style="margin-top:9px">${icon('reset')} התחלה מחדש</button>` : ''}
+    </div>`;
+  document.getElementById('start').onclick = () => { state.started = true; persistDraft(); sectionView(); };
+  const rs = document.getElementById('restart');
+  if (rs) rs.onclick = () => {
+    if (!confirm('למחוק את כל מה שמולא עד כה ולהתחיל מחדש?')) return;
+    state = { step:0, answers:{}, returnToReview:false, started:true };
+    TASK.fields.forEach(f => { if (f.prefill) state.answers[f.id] = f.prefill; });
+    persistDraft(); sectionView();
+  };
+}
+
+/* ═══ inputs ═══ */
+function shotsHtml(gi, answer){
+  if (!Array.isArray(answer) || !answer.length) return '';
+  return `<div class="shots">${answer.map((u, j) => `<div class="shot"><img src="${u}" alt=""><button type="button" class="rm" data-rm="${gi}:${j}" aria-label="מחיקת תמונה">${icon('close')}</button></div>`).join('')}</div>`;
+}
+function inputHtml(f, gi, a){
+  const v = (typeof a === 'string' || typeof a === 'number') ? a : '';
+  const id = `a${gi}`;
+  switch (f.type) {
+    case 'textarea': return `<textarea class="answer-input" id="${id}" data-gi="${gi}" rows="4" placeholder="כתוב כאן…">${esc(v)}</textarea>`;
+    case 'number':   return `<input class="answer-input" id="${id}" data-gi="${gi}" type="number" inputmode="decimal" value="${esc(v)}" placeholder="הזן מספר">`;
+    case 'date':     return `<input class="answer-input" id="${id}" data-gi="${gi}" type="date" value="${esc(v)}">`;
+    case 'yesno':    return `<div class="choice-grid">
+        <button class="choice ${a === 'כן' ? 'active' : ''}" type="button" data-pick="${gi}" data-val="כן">${icon('check')} כן, תקין</button>
+        <button class="choice ${a === 'לא' ? 'active' : ''}" type="button" data-pick="${gi}" data-val="לא">${icon('close')} לא תקין</button></div>`;
+    case 'select': {
+      const opts = (f.options && f.options.length) ? f.options : ['תקין','נדרש טיפול','לא רלוונטי'];
+      return `<select class="answer-input" id="${id}" data-gi="${gi}"><option value="">בחר תשובה</option>${opts.map(o => `<option ${a === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+    }
+    case 'photo': return `<div class="zone">
+        <label for="p${gi}">${icon('f-photo','ic lg')}<b>צילום או בחירת תמונה</b><small>נשמרת מכווצת לגודל שליחה</small></label>
+        <input id="p${gi}" type="file" accept="image/*" multiple data-photo="${gi}">${shotsHtml(gi, a)}</div>`;
+    case 'gps': {
+      const has = a && a.latitude;
+      return `<div class="zone">${icon('f-gps','ic lg')}<b>${has ? 'המיקום נשמר' : 'שמירת מיקום נוכחי'}</b>
+        <div style="margin-top:10px"><button class="btn ghost slim" type="button" data-gps="${gi}">${has ? 'עדכון מיקום' : 'שמור מיקום'}</button></div>
+        <small id="g${gi}">${has ? `דיוק ${Math.round(a.accuracy || 0)} מ׳` : ''}</small></div>`;
+    }
+    case 'signature': return `<canvas id="s${gi}" class="signature" data-sig="${gi}"></canvas>
+        <button class="btn ghost slim" type="button" data-clearsig="${gi}" style="margin-top:9px">${icon('reset')} נקה חתימה</button>`;
+    default: return `<input class="answer-input" id="${id}" data-gi="${gi}" value="${esc(v)}" placeholder="הקלד תשובה">`;
+  }
+}
+function blockHtml(f, gi){
+  const a = state.answers[f.id];
+  return `<div class="blk" id="b${gi}">
+    <div class="lb"><span>${esc(f.label)}</span>${f.required ? '<span class="req" title="שדה חובה">*</span>' : ''}</div>
+    <p class="help">${esc(f.help || '')}</p>
+    <div class="body">${inputHtml(f, gi, a)}</div>
+    <div class="fe">${f.type === 'photo' ? 'נדרשת לפחות תמונה אחת.' : 'שדה חובה — יש למלא כדי להמשיך.'}</div>
+  </div>`;
+}
+
+/* ═══ VIEW: one section per screen ═══ */
+function sectionView(){
+  const s = SECTIONS[state.step];
+  const st = secStat(s);
+  const pct = Math.round(((state.step) / SECTIONS.length) * 100);
+  topPill.hidden = false;
+  topPill.textContent = `${state.step + 1}/${SECTIONS.length}`;
+  app.innerHTML = `
+    <div class="prog">
+      <span class="txt">סעיף <b>${state.step + 1}</b> מתוך <b>${SECTIONS.length}</b></span>
+      <button class="jump" type="button" id="jump-btn">${icon('f-para')} כל הסעיפים</button>
+    </div>
+    <div class="bar"><i style="width:${Math.max(pct, 3)}%"></i></div>
+    <div class="card">
+      <div class="sec-head">${icon(s.icon || 'target')}<h2>${esc(s.name)}</h2></div>
+      <p class="sec-sub">${st.total} שדות בסעיף${st.total > 1 ? ' — הכול במסך אחד' : ''}</p>
+      ${s.items.map(it => blockHtml(it.f, it.gi)).join('')}
+    </div>`;
+  footIn.innerHTML = `
+    ${state.step > 0 ? `<button class="btn ghost back" type="button" id="prev">${icon('back')}</button>` : ''}
+    <button class="btn dark" type="button" id="next">${state.returnToReview ? 'שמירה וחזרה לסקירה' : (state.step === LAST ? 'לסקירה אחרונה' : 'הסעיף הבא')} ${icon('next')}</button>`;
+  foot.hidden = false;
+  bindSection(s);
+  document.getElementById('jump-btn').onclick = jumpSheet;
+  const prev = document.getElementById('prev');
+  if (prev) prev.onclick = () => { collect(s); state.returnToReview = false; state.step--; persistDraft(); sectionView(); };
+  document.getElementById('next').onclick = () => {
+    collect(s);
+    const bad = s.items.filter(it => it.f.required && isEmpty(state.answers[it.f.id]));
+    document.querySelectorAll('.blk.bad').forEach(el => el.classList.remove('bad'));
+    if (bad.length) {
+      bad.forEach(it => document.getElementById('b' + it.gi).classList.add('bad'));
+      document.getElementById('b' + bad[0].gi).scrollIntoView({ behavior:'smooth', block:'center' });
+      toast(bad.length === 1 ? 'נותר שדה חובה אחד בסעיף הזה.' : `נותרו ${bad.length} שדות חובה בסעיף הזה.`, true);
+      return;
+    }
+    persistDraft();
+    if (state.returnToReview) { state.returnToReview = false; reviewView(); return; }
+    if (state.step === LAST) { reviewView(); return; }
+    state.step++; persistDraft(); sectionView();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  };
+  window.scrollTo({ top:0 });
+}
+
+function collect(s){
+  s.items.forEach(it => {
+    const el = document.getElementById('a' + it.gi);
+    if (el) state.answers[it.f.id] = el.value;
+  });
+  persistDraft();
+}
+
+function bindSection(s){
+  const byGi = gi => s.items.find(it => it.gi === gi).f;
+  document.querySelectorAll('[data-gi]').forEach(el => el.addEventListener('input', () => {
+    state.answers[byGi(+el.dataset.gi).id] = el.value;
+    const blk = el.closest('.blk'); if (blk && el.value) blk.classList.remove('bad');
+    persistDraft();
+  }));
+  document.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
+    const gi = +b.dataset.pick; state.answers[byGi(gi).id] = b.dataset.val;
+    document.querySelectorAll(`[data-pick="${gi}"]`).forEach(x => x.classList.toggle('active', x === b));
+    document.getElementById('b' + gi).classList.remove('bad');
+    persistDraft();
+  });
+  document.querySelectorAll('[data-photo]').forEach(inp => inp.addEventListener('change', async () => {
+    const gi = +inp.dataset.photo, f = byGi(gi), files = [...inp.files];
+    if (!files.length) return;
+    let added;
+    try { added = await Promise.all(files.map(x => compressImage(x))); }
+    catch { toast('לא ניתן היה לעבד תמונה אחת או יותר.', true); return; }
+    state.answers[f.id] = [...(state.answers[f.id] || []), ...added];
+    persistDraft(); refreshBlock(gi, f);
+  }));
+  document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+    const [gi, j] = b.dataset.rm.split(':').map(Number); const f = byGi(gi);
+    const arr = state.answers[f.id];
+    if (Array.isArray(arr)) { arr.splice(j, 1); persistDraft(); refreshBlock(gi, f); }
+  });
+  document.querySelectorAll('[data-gps]').forEach(b => b.onclick = () => {
+    const gi = +b.dataset.gps, f = byGi(gi);
+    if (!navigator.geolocation) { toast('מיקום לא נתמך בדפדפן זה.', true); return; }
+    b.textContent = 'מאתר מיקום…'; b.disabled = true;
+    navigator.geolocation.getCurrentPosition(pos => {
+      state.answers[f.id] = { latitude:pos.coords.latitude, longitude:pos.coords.longitude, accuracy:pos.coords.accuracy, capturedAt:Date.now() };
+      persistDraft(); refreshBlock(gi, f);
+    }, () => { b.disabled = false; b.textContent = 'שמור מיקום'; toast('לא ניתן היה לקבל מיקום.', true); },
+      { enableHighAccuracy:true, timeout:10000, maximumAge:0 });
+  });
+  document.querySelectorAll('[data-sig]').forEach(c => initSignature(c, byGi(+c.dataset.sig)));
+  document.querySelectorAll('[data-clearsig]').forEach(b => b.onclick = () => {
+    const gi = +b.dataset.clearsig; state.answers[byGi(gi).id] = ''; persistDraft(); refreshBlock(gi, byGi(gi));
+  });
+}
+/* redraw a single block instead of the whole screen — keeps scroll position and other inputs intact */
+function refreshBlock(gi, f){
+  const old = document.getElementById('b' + gi);
+  if (!old) return;
+  const tmp = document.createElement('div'); tmp.innerHTML = blockHtml(f, gi);
+  const fresh = tmp.firstElementChild;
+  old.replaceWith(fresh);
+  bindSection(SECTIONS[state.step]);
+}
+
+function initSignature(canvas, field){
+  const existing = state.answers[field.id];
+  const ctx = canvas.getContext('2d'); const ratio = window.devicePixelRatio || 1;
+  canvas.width = canvas.clientWidth * ratio; canvas.height = canvas.clientHeight * ratio;
+  ctx.scale(ratio, ratio); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#16202e'; ctx.lineWidth = 2.2;
+  if (existing) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0, canvas.clientWidth, canvas.clientHeight); img.src = existing; }
+  let drawing = false;
+  const point = e => { const r = canvas.getBoundingClientRect(); const p = e.touches ? e.touches[0] : e; return { x:p.clientX - r.left, y:p.clientY - r.top }; };
+  canvas.onpointerdown = e => { drawing = true; const p = point(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); };
+  canvas.onpointermove = e => { if (!drawing) return; const p = point(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); };
+  const end = () => { if (!drawing) return; drawing = false; state.answers[field.id] = canvas.toDataURL('image/png');
+    const blk = canvas.closest('.blk'); if (blk) blk.classList.remove('bad'); persistDraft(); };
+  canvas.onpointerup = end; canvas.onpointerleave = end; canvas.onpointercancel = end;
+}
+
+/* ═══ jump navigation — essential once an site has 20+ camera sections ═══ */
+function jumpSheet(){
+  collect(SECTIONS[state.step]);
+  const bg = document.createElement('div'); bg.className = 'sheet-bg';
+  const rows = SECTIONS.map((s, i) => {
+    const st = secStat(s);
+    const kind = st.missing ? 'miss' : (st.done ? 'ok' : 'part');
+    const ic = st.missing ? 'warn' : (st.done ? 'check' : 'clock');
+    const note = st.missing ? `חסרים ${st.missing} שדות חובה` : (st.done ? 'הושלם' : `${st.filled} מתוך ${st.total}`);
+    return `<button class="jrow ${i === state.step ? 'now' : ''}" type="button" data-go="${i}">
+      <span class="st ${kind}">${icon(ic)}</span>
+      <span class="m"><b>${esc(s.name)}</b><span>${note}</span></span>
+      <span class="n">${i + 1}</span></button>`;
+  }).join('');
+  bg.innerHTML = `<div class="sheet">
+    <div class="sheet-head"><b>מעבר לסעיף</b><button class="x" type="button" id="jx" aria-label="סגירה">${icon('close')}</button></div>
+    <div class="sheet-body">${rows}</div></div>`;
+  document.body.append(bg);
+  const close = () => bg.remove();
+  bg.addEventListener('click', e => { if (e.target === bg) close(); });
+  bg.querySelector('#jx').onclick = close;
+  bg.querySelectorAll('[data-go]').forEach(b => b.onclick = () => {
+    state.step = +b.dataset.go; state.returnToReview = false; persistDraft(); close(); sectionView();
+  });
+}
+
+/* ═══ VIEW: review ═══ */
+function summaryOf(f){
+  const a = state.answers[f.id];
+  if (Array.isArray(a)) return a.length ? `${a.length} תמונות` : '';
+  if (f.type === 'signature') return a ? 'חתום' : '';
+  if (f.type === 'gps') return (a && a.latitude) ? `${a.latitude.toFixed(5)}, ${a.longitude.toFixed(5)}` : '';
+  return (a === null || a === undefined) ? '' : String(a);
+}
+function reviewView(){
+  const missing = allMissing();
+  topPill.hidden = true;
+  const body = SECTIONS.map((s, i) => {
+    const st = secStat(s);
+    return `<div class="rev-band"><span>${esc(s.name)}</span><span class="sp"></span>
+        <span style="font-weight:600;color:${st.missing ? 'var(--red)' : 'var(--ink-3)'}">${st.missing ? `חסרים ${st.missing}` : `${st.filled}/${st.total}`}</span>
+        <button type="button" data-edit="${i}">${icon('pencil','ic sm')} עריכה</button></div>
+      ${s.items.map(it => { const v = summaryOf(it.f);
+        return `<div class="rev-row"><div class="rev-info"><div class="rev-q">${esc(it.f.label)}</div>
+          <div class="rev-a ${v ? '' : 'none'}">${v ? esc(v) : (it.f.required ? 'חסר — שדה חובה' : 'לא מולא')}</div></div></div>`; }).join('')}`;
+  }).join('');
+  app.innerHTML = `
+    <div class="card">
+      <span class="badge">${icon('eye')} סקירה אחרונה</span>
+      <h1>בדיקה לפני סיום</h1>
+      <div class="callout ${missing ? 'warn' : 'ok'}">${icon(missing ? 'warn' : 'check-circ')}<span>${missing
+        ? `נותרו <b>${missing}</b> שדות חובה שלא מולאו. אפשר לסיים בכל מקרה — הם יסומנו כחסרים בדוח.`
+        : 'כל שדות החובה מולאו. אפשר לסיים.'}</span></div>
+      ${body}
+    </div>`;
+  footIn.innerHTML = `<button class="btn ghost back" type="button" id="rback">${icon('back')}</button>
+    <button class="btn dark" type="button" id="finish">${INAPP ? 'שמירה במפה לי' : 'סיום ויצירת קובץ'} ${icon('next')}</button>`;
+  foot.hidden = false;
+  document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => {
+    state.step = +b.dataset.edit; state.returnToReview = true; persistDraft(); sectionView();
+  });
+  document.getElementById('rback').onclick = () => { state.step = LAST; state.returnToReview = false; sectionView(); };
+  document.getElementById('finish').onclick = () => INAPP ? saveIntoHost() : finishView();
+  window.scrollTo({ top:0 });
+}
+
+function buildPayload(){
+  return { format:'shtachla-result-payload', version:2, createdAt:Date.now(), task:TASK,
+    answers: TASK.fields.map(f => ({ fieldId:f.id, label:f.label, section:f.section, type:f.type, required:!!f.required, answer: state.answers[f.id] ?? null })),
+    metadata: { completedAt:Date.now(), userAgent:navigator.userAgent, source: INAPP ? 'in-app' : 'field-file' } };
+}
+
+/* ═══ in-app finish: straight into the host's results library ═══ */
+function saveIntoHost(){
+  const btn = document.getElementById('finish'); btn.disabled = true; btn.textContent = 'שומר…';
+  try {
+    window.parent.postMessage({ type:'shtachla-result', payload: buildPayload() }, window.location.origin);
+    try { localStorage.removeItem('shtachla-draft-' + TASK.id); } catch {}
+    foot.hidden = true;
+    app.innerHTML = `<div class="card" style="text-align:center">${icon('check-circ','ic lg')}<h1 style="margin-top:10px">נשמר במפה לי</h1>
+      <p class="lead">התוצאה נמצאת בספריית התוצאות. אפשר לסגור את החלון הזה.</p></div>`;
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'שמירה במפה לי';
+    toast('השמירה נכשלה. נסה שוב.', true);
+  }
+}
+
+/* ═══ file finish (field worker) ═══ */
+function finishView(){
+  const missing = allMissing();
+  topPill.hidden = true; foot.hidden = true;
+  app.innerHTML = `
+    <div class="card">
+      <span class="badge">${icon('file-out')} סיום המשימה</span>
+      <h1>יצירת קובץ התוצאה</h1>
+      <p class="lead">ייווצר קובץ אחד. אתה בוחר למי לשלוח אותו — שלח אותו <b>כמסמך</b>, לא כתמונה.</p>
+      ${missing ? `<div class="callout warn">${icon('warn')}<span>נותרו ${missing} שדות חובה חסרים. הם יסומנו כחסרים בדוח.</span></div>` : ''}
+      <div class="privacy">${icon('lock')}<span>אפשר להגן על הקובץ בקוד בן 4 ספרות. את הקוד מוסרים למנהל בטלפון — הוא לא נשמר בקובץ.</span></div>
+      <input class="code-input" id="pin" inputmode="numeric" maxlength="4" placeholder="••••" aria-label="קוד הגנה בן 4 ספרות">
+      <p style="text-align:center;font-size:12.5px;color:var(--ink-2);margin:0 0 14px">אפשר להשאיר ריק — הקובץ ייווצר בלי הגנה</p>
+      <button class="btn dark" id="make">${icon('file-out')} יצירת הקובץ</button>
+      <button class="btn ghost" id="fback" style="margin-top:9px">${icon('back')} חזרה לסקירה</button>
+      <div class="err" id="ferr"></div>
+    </div>`;
+  document.getElementById('fback').onclick = reviewView;
+  document.getElementById('make').onclick = async () => {
+    const pin = document.getElementById('pin').value.trim();
+    const errEl = document.getElementById('ferr');
+    if (pin && !/^\d{4}$/.test(pin)) { errEl.textContent = 'הקוד חייב להיות 4 ספרות, או ריק.'; return; }
+    const btn = document.getElementById('make'); btn.disabled = true; btn.textContent = 'מכין קובץ…';
+    try { const blob = await buildResultBlob(pin); shareView(blob, !!pin); }
+    catch (e) { btn.disabled = false; btn.innerHTML = icon('file-out') + ' יצירת הקובץ'; errEl.textContent = 'יצירת הקובץ נכשלה. נסה שוב.'; }
+  };
+}
+
+async function buildResultBlob(pin){
+  const payloadBytes = encoder.encode(JSON.stringify(buildPayload()));
+  let header, payloadB64;
+  const cryptoOK = !!(pin && window.crypto && crypto.subtle && crypto.subtle.importKey);
+  if (cryptoOK) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const iterations = 150000;
+    const material = await crypto.subtle.importKey('raw', encoder.encode(pin), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations, hash:'SHA-256' }, material, { name:'AES-GCM', length:256 }, false, ['encrypt']);
+    const encrypted = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, payloadBytes);
+    header = { locked:true, salt:bytesToB64(salt), iv:bytesToB64(iv), iterations };
+    payloadB64 = bytesToB64(encrypted);
+  } else {
+    if (pin) toast('ההצפנה לא זמינה בדפדפן זה — הקובץ ייווצר בלי קוד.', true);
+    header = { locked:false };
+    payloadB64 = bytesToB64(payloadBytes);
+  }
+  const safeTitle = (TASK.title || 'תוצאת מפה לי').replace(/[<>]/g, '');
+  const html = RESULT_TEMPLATE
+    .replace('__TITLE__', () => safeTitle)
+    .replace('__HEADER__', () => JSON.stringify(header))
+    .replace('__PAYLOAD__', () => payloadB64);
+  return new Blob([html], { type:'text/html' });
+}
+
+function shareView(blob, locked){
+  const filename = (TASK.title.replace(/[^\p{L}\p{N}]+/gu, '-') || 'תוצאה') + '-' + new Date().toISOString().slice(0, 10) + '.html';
+  const url = URL.createObjectURL(blob);
+  app.innerHTML = `
+    <div class="card">
+      <span class="badge">${icon('check-circ')} הקובץ מוכן</span>
+      <h1>שליחת התוצאה</h1>
+      <p class="lead">שלח את הקובץ למנהל <b>כמסמך</b> (לא כתמונה — תמונה תשבש אותו).</p>
+      ${locked ? `<div class="callout warn">${icon('lock')}<span>הקובץ מוגן. מסור את הקוד למנהל בטלפון, לא באותה הודעה.</span></div>` : ''}
+      <button class="btn dark" id="share-btn">${icon('send')} שיתוף הקובץ</button>
+      <a class="btn ghost" id="dl-btn" href="${url}" download="${esc(filename)}" style="margin-top:9px;text-decoration:none">${icon('download')} הורדה למכשיר</a>
+      <button class="btn ghost" id="done-btn" style="margin-top:9px">${icon('trash')} סיימתי — נקה את המכשיר</button>
+    </div>`;
+  document.getElementById('share-btn').onclick = async () => {
+    const file = new File([blob], filename, { type:'text/html' });
+    if (navigator.canShare && navigator.canShare({ files:[file] })) {
+      try { await navigator.share({ files:[file], title:TASK.title }); return; } catch {}
+    }
+    document.getElementById('dl-btn').click();
+    toast('שיתוף ישיר לא נתמך — הקובץ הורד. שלח אותו מהוואטסאפ כמסמך.', true);
+  };
+  document.getElementById('done-btn').onclick = () => {
+    if (!confirm('לנקות את כל הנתונים מהמכשיר? ודא שהקובץ נשלח בהצלחה.')) return;
+    try { localStorage.removeItem('shtachla-draft-' + TASK.id); } catch {}
+    URL.revokeObjectURL(url);
+    app.innerHTML = `<div class="card" style="text-align:center">${icon('check-circ','ic lg')}<h1 style="margin-top:10px">הנתונים נמחקו</h1><p class="lead">אפשר לסגור את הדף.</p></div>`;
+  };
+}
+
+/* ═══ init ═══ */
+if (!SECTIONS.length) {
+  app.innerHTML = `<div class="card" style="text-align:center">${icon('warn','ic lg')}<h1 style="margin-top:10px">אין שדות במשימה</h1><p class="lead">חזור למפה לי והוסף שדות לפני ההפקה.</p></div>`;
+} else if (INAPP && state.started) { sectionView(); } else { introView(); }
+</script>
+</body>
+</html>
